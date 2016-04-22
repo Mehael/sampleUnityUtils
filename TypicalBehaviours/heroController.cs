@@ -4,58 +4,54 @@ using System.Collections.Generic;
 
 [RequireComponent(typeof(AudioSource))]
 [RequireComponent(typeof(Rigidbody2D))]
-[RequireComponent(typeof (Animator))]
 public class heroController : MonoBehaviour {
     Rigidbody2D rBody;
     Animator animator; 
 
     public float jumpSpeed = 100f;
     public float moveSpeed = 100f;
-    public Transform groundCheck;
+    public Vector3 baseScale;
     public AudioClip jumpSound;
+    public float maxVelocity = 2f;
 
-    bool isGrounded = false;
+    public bool isGrounded = false;
+    float facedX = 1;
 
     void Start()
     {
         rBody = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
+        baseScale = transform.localScale;
     }
 
 	void Update () {
-        if (Input.GetKeyDown(KeyCode.Space))
-            Jump();
-        if (Input.GetKey(KeyCode.LeftArrow))
-            transform.Translate(Vector3.left*moveSpeed);
-        if (Input.GetKey(KeyCode.RightArrow))
-            transform.Translate(Vector3.right * moveSpeed);
+        if (!isGrounded && rBody.velocity.magnitude > maxVelocity)
+            rBody.velocity = rBody.velocity.normalized * maxVelocity;
 
-        if (isGrounded != (rBody.velocity == Vector2.zero))
+        if (Input.GetKey("a") || Input.GetKey("d"))
         {
-            SendMessage("leftStep");
-            SendMessage("RightStep");
-        }
+            var newFaced = Input.GetKey("a") ? -1  : 1;
+            if (newFaced != facedX)
+            {
+                transform.localScale = new Vector3(newFaced*baseScale.x, baseScale.y, baseScale.z);
+
+                facedX = newFaced;
+            }
+            animator.SetBool("isMoving", true);
+				
+            transform.Translate(new Vector3(facedX, 0) * moveSpeed * Time.deltaTime);
+        } else 
+			animator.SetBool("isMoving", false);
 
         isGrounded = rBody.velocity == Vector2.zero;
         animator.SetBool("isGrounded", isGrounded);
-        animator.SetFloat("yVelocity", rBody.velocity.y);
+        //animator.SetFloat("yVelocity", rBody.velocity.y);
 
-        if (Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            transform.localScale = new Vector3(-1, 1, 1);
-            animator.SetBool("isMoving", true);
-        }
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            transform.localScale = new Vector3(1, 1, 1);
-            animator.SetBool("isMoving", true);
-        }
+        if (Input.GetKeyDown("w"))
+            Jump();
+               
+	
 
-        if ((Input.GetKeyUp(KeyCode.RightArrow) && !Input.GetKey(KeyCode.LeftArrow))
-            || (Input.GetKeyUp(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)))
-        {
-            animator.SetBool("isMoving", false);
-        }
     }
 
     void Jump()
@@ -67,4 +63,7 @@ public class heroController : MonoBehaviour {
 
         }
     }
+
+    void RightStep() { }
+    void LeftStep() { }
 }

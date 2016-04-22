@@ -3,61 +3,94 @@ using System.Collections;
 
 public class FadeManager: MonoBehaviour
 {
-    private static GameObject fp;
-    private static SpriteRenderer sr;
-    public GameObject FadePrefab;
-    float speed = 1f;
+    public static FadeManager instance;
+    public AudioClip loose;
+    public AudioClip expl;
+    public AudioClip hurt;
+    public AudioSource aso;
+
+    public float speed = 1f;
     float alpha = 0;
 
     public static bool Fading;
     public static bool Unfading;
 
     public delegate void act();
+    SpriteRenderer sr;
+
+    public static void Hurt()
+    {
+        instance.aso.PlayOneShot(instance.hurt);
+    }
+
+    public static void Expl()
+    {
+        instance.aso.PlayOneShot(instance.expl);
+    }
+
+    public static void Lose()
+    {
+        instance.aso.PlayOneShot(instance.loose);
+    }
 
     public static void Fade(act postFade)
     {
-        if (Fading || Unfading) return;
-        var go = Instantiate(fp);
-        var fm = go.GetComponent<FadeManager>();
-        sr = go.GetComponent<SpriteRenderer>();
-        DontDestroyOnLoad(go);
+        if (instance == null)
+        {
+            postFade();
+            return;
+        }
+        
         Fading = true;
-        fm.StartCoroutine(fm.WaitForFade(postFade));
+        Unfading = false;
+
+        instance.alpha = 0f;
+        instance.StartCoroutine(instance.WaitForFade(postFade));
     }
 
     public IEnumerator WaitForFade(act postFade)
     {
         while (Fading)
-        {
             yield return new WaitForEndOfFrame();
-        }
+
         postFade();
     }
 
     public static void Unfade(act postUnfade)
     {
-        if (Fading || Unfading) return;
+        if (instance == null)
+        {
+            postUnfade();
+            return;
+        }
+
+        Fading = false;
         Unfading = true;
-        var fm = sr.gameObject.GetComponent<FadeManager>();
-        fm.StartCoroutine(fm.WaitForUnfade(postUnfade));
+
+        instance.alpha = 1f;
+        instance.StartCoroutine(instance.WaitForUnfade(postUnfade));
     }
 
     public IEnumerator WaitForUnfade(act postUnfade)
     {
         while (Unfading)
-        {
             yield return new WaitForEndOfFrame();
-        }
-        postUnfade();
-        Destroy(gameObject);
+
+        if (postUnfade != null)
+            postUnfade();
     }
 
-    // Use this for initialization
-    void Start()
+    void Awake()
     {
-        if (fp != null) return;
-        fp = FadePrefab;
-        //Destroy(this);
+        if (instance != null && instance != this)
+            Destroy(gameObject);
+        else
+        {
+            sr = GetComponent<SpriteRenderer>();
+            DontDestroyOnLoad(this);
+            instance = this;
+            Unfade(null);
+        }
     }
 
     // Update is called once per frame
@@ -67,10 +100,10 @@ public class FadeManager: MonoBehaviour
         {
             alpha = alpha - speed * Time.deltaTime;
             if (alpha > 0)
-                sr.color = new Color(sr.color.a, sr.color.b, sr.color.g, alpha);
+                sr.color = new Color(sr.color.r, sr.color.b, sr.color.g, alpha);
             else
             {
-                sr.color = new Color(sr.color.a, sr.color.b, sr.color.g, 0f);
+                sr.color = new Color(sr.color.r, sr.color.b, sr.color.g, 0f);
                 Unfading = false;
             }
         }
@@ -78,10 +111,10 @@ public class FadeManager: MonoBehaviour
         {
             alpha = alpha + speed * Time.deltaTime;
             if (alpha < 1)
-                sr.color = new Color(sr.color.a, sr.color.b, sr.color.g, alpha);
+                sr.color = new Color(sr.color.r, sr.color.b, sr.color.g, alpha);
             else
             {
-                sr.color = new Color(sr.color.a, sr.color.b, sr.color.g, 1f);
+                sr.color = new Color(sr.color.r, sr.color.b, sr.color.g, 1f);
                 Fading = false;
             }
         }

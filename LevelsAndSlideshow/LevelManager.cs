@@ -7,7 +7,7 @@ public static class LevelManager
     private const string LevelNameTemplate = "Level";
     private const string ClipNameTemplate = "Clip";
     private static int savedLevel;
-    private static int currentLevel;
+    public static int currentLevel;
     private static int currentClip;
 
     public static bool HaveSavedLevel
@@ -27,16 +27,23 @@ public static class LevelManager
 
     private static string nameBuffer;
     private static bool isLoading;
+
+    public static void LoadSpecialClip(string name)
+    {
+        LoadScene(name);
+    }
+
     private static void LoadScene(string name)
     {
         if (isLoading) return;
+
         nameBuffer = name;
         isLoading = true;
         FadeManager.Fade(PostFadeLoadScene);
     }
 
     public static void PostFadeLoadScene()
-    {
+    {      
         Application.LoadLevel(nameBuffer);
         FadeManager.Unfade(PostUnfadeLoadScene);
     }
@@ -61,6 +68,7 @@ public static class LevelManager
     public static void RestartLevel()
     {
         if (isLoading) return;
+        FadeManager.Lose();
         LoadScene(GetLevelName(currentLevel));
     }
 
@@ -84,6 +92,7 @@ public static class LevelManager
         currentLevel = 0;
         currentClip = 0;
         savedLevel = 1;
+
         LoadScene(GetClipName(0));
     }
 

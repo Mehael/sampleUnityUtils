@@ -4,29 +4,38 @@ using System.Collections.Generic;
 using UnityEngine.UI;
 
 public class TextTypingWithSound : MonoBehaviour {
+    public string textToType;
     public float typingPause = .1f;
+    public Text shadow;
     public AudioClip letterSound;
     public bool isSelfDestroying = false;
     public float timeToDestroy = 5f;
 
-    string textToType;
     Text textUIComponent;
     AudioSource audioPlayer;
     float hideSpeed = 1f;
 
-	IEnumerator Start () {
-	    textUIComponent = GetComponent<Text>();
+	void OnEnable () {
+        StartCoroutine(Print());
+    }
+
+    IEnumerator Print()
+    {
+        textUIComponent = GetComponent<Text>();
         if (letterSound)
             audioPlayer = GetComponent<AudioSource>();
-        textToType = textUIComponent.text;
         textUIComponent.text = "";
 
-        foreach (var letter in textToType){
+        foreach (var letter in textToType)
+        {
             textUIComponent.text += letter;
+            if (shadow != null)
+                shadow.text = textUIComponent.text;
+
             if (letterSound)
                 audioPlayer.PlayOneShot(letterSound);
-        
-             yield return new WaitForSeconds(typingPause);
+
+            yield return new WaitForSeconds(typingPause);
         }
 
         if (!isSelfDestroying)
