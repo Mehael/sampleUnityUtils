@@ -1,3 +1,4 @@
 # sampleUnityUtils
 Easy and simple scripts for prototyping or Ludum Dare.
-All are under MIT licence ;3
+All my scripts are under MIT licence ;3
+Spriter and 2dController scripts have other autors on GitHub.    
